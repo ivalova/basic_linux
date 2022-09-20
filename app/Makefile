@@ -3,26 +3,27 @@ CC = ${CROSS_COMPILE}gcc
 LD = ${CROSS_COMPILE}gcc
 
 OBJDIR = obj
-OBJ_RELEASE = ${OBJDIR}/main.o
+OBJ= main.o user_handler.o
+OBJ_PATH = $(addprefix ${OBJDIR}/,${OBJ})
 
 BINDIR = bin
 OUT_RELEASE = ${BINDIR}/app
 
 SRCDIR = src
+INCDIR = inc
 
-SRC = src
-
-all: release
+all: app
 
 before_build:
 	mkdir -p $(OBJDIR)
 	mkdir -p $(BINDIR)
 
-$(OBJDIR_)/example_1.o: before_build
-	$(CC) -c $(SRC)/main.c -o $(OBJ_RELEASE)
+%.o :  ${SRCDIR}/%.c before_build
+	$(CC) -c $< -o $(OBJDIR)/$@ -I $(INCDIR)
 	
-release: $(OBJDIR_)/example_1.o
-	$(LD) -o $(OUT_RELEASE) $(OBJ_RELEASE) 
+app: $(OBJ)
+	$(LD) -o $(BINDIR)/$@ $(OBJ_PATH)
+
 clean:
 	rm -rf $(OBJDIR)
 	rm -rf $(BINDIR)
