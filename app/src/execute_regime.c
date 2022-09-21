@@ -1,16 +1,24 @@
 #include "execute_regime.h"
 
-pthread_mutex_t lock;
-static sem_t semStartTh2;
-static sem_t semEndTh2;
-static sem_t semEnd;
-int option;
-FILE *fd;
-char* path = "/dev/null";
+const char* test_input1 = "BORNA123";
+const char* test_input2 = "IVAN690";
+const char* test_input3 = "DMIJIC456";
+const char* test_input4 = "MA773OB";
+const char* test_input5 = "FILE70";
+
+const char* test_output1 = "-... --- .-. -. .- .---- ..--- ...--";
+const char* test_output2 = ".. ...- .- -. -.... ----. -----";
+const char* test_output3 = "-.. -- .. .--- .. -.-. ....- ..... -....";
+const char* test_output4 = "-- .- --... --... ...-- --- -...";
+const char* test_output5 = "..-. .. .-.. . --... -----";
+
+sem_t semFinishSignal;
+sem_t semStart;
+
+test_pairs_t test_vectors[5];
 
 pthread_mutex_t mutex;
 enum mode       program_mode;
-uint8_t         msg_option; //1,2,3,4,5
 uint8_t         error_index; //0-n
 uint8_t         error_value; // ASCII char
 uint8_t         led; // green, red
@@ -18,68 +26,81 @@ uint16_t        unit_duration; //ms
 
 static char *rand_string(void)
 {
-    const char charset[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    int size;
+        const char charset[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        uint8_t size;
 
-    do{
-        size = rand() % 51;
-    }while(size<=0);
+        do {
+                size = rand() % 51;
+        }while(size<=0);
 
-    char* str = malloc(size + 1);
+        char* str = malloc(size + 1);
 
-    for (size_t n = 0; n < size; ++n) {
-        int key = rand() % (int) (sizeof charset - 1);
-        str[n] = charset[key];
-    }
+        for (uint8_t n = 0; n < size; ++n) {
+                uint8_t key = rand() % (uint8_t) (sizeof charset - 1);
+                str[n] = charset[key];
+        }
 
-    str[size] = '\0';
+        str[size] = '\0';
 
-    return str;
+        return str;
 }
 
-int normal_regime()
+void test_setup(void)
 {
-    char *random_string;
+        const test_pairs_t test_pair1 = {
+                .test_input = test_input1,
+                .test_output = test_output1
+        };
 
-    // Generate random string up to 50 chars
-    random_string = rand_string();
-    printf("%s\n", random_string);
+        const test_pairs_t test_pair2 = {
+                .test_input = test_input2,
+                .test_output = test_output2
+        };
 
-    pthread_mutex_lock(&lock);
-    fd=fopen(path,"w+");
-    fputs(random_string, fd);
-    printf("Written %s to %s\n", random_string, path);
-    fclose(fd);
-    pthread_mutex_unlock(&lock); 
+        const test_pairs_t test_pair3 = {
+                .test_input = test_input3,
+                .test_output = test_output3
+        };
 
-    return 0;
+        const test_pairs_t test_pair4 = {
+                .test_input = test_input4,
+                .test_output = test_output4
+        };
+
+        const test_pairs_t test_pair5 = {
+                .test_input = test_input5,
+                .test_output = test_output5
+        };
+
+        test_vectors[0] = test_pair1;
+        test_vectors[1] = test_pair2;
+        test_vectors[2] = test_pair3;
+        test_vectors[3] = test_pair4;
+        test_vectors[4] = test_pair5;
+
+        return;
 }
 
-// void* perform_work (void *pParam)
-// {
-//     if (sem_trywait(&semEnd) == 0)
-//     {
-//         break;
-//     }
-//     if (sem_trywait(&semStartTh2) == 0)
-//     {
-//         switch(option)
-//         {
-//             case 1:
-//                 normal_regime();
-//                 break;
-//             case 2:
-//                 test_regime();
-//                 break;
-//             case 3:
-//                 error_regime();
-//                 break;
-//             default:
-//                 break;
-//         }
+uint8_t normal_regime(const char* path)
+{
+        char *random_string;
+        uint64_t fd;
+    
+        random_string = rand_string();
+        printf("%s\n", random_string);
 
-//         sem_post(&semEndTh2);
-//     }
+        fd = open(path, O_WRONLY);
+        printf("Written %s to %s\n", random_string, path);
 
-//     return 0;
-// }
+        return 0;
+}
+
+uint8_t test_regime(const uint8_t msg_option, const char* path)
+{
+        uint64_t fd;
+
+        fd = open(path, O_WRONLY);
+        printf("Written %s to %s\n", test_vectors[msg_option - 1].test_input, path);
+
+        return 0;
+}
