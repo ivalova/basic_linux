@@ -24,7 +24,7 @@ uint8_t         error_value; // ASCII char
 uint8_t         led; // green, red
 uint16_t        unit_duration; //ms
 
-static char *rand_string(void)
+static char* rand_string(void)
 {
         const char charset[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         uint8_t size;
@@ -81,26 +81,57 @@ void test_setup(void)
         return;
 }
 
-uint8_t normal_regime(const char* path)
+void normal_regime(const char *path)
 {
         char *random_string;
+        uint8_t res;
         uint64_t fd;
-    
-        random_string = rand_string();
-        printf("%s\n", random_string);
 
-        fd = open(path, O_WRONLY);
-        printf("Written %s to %s\n", random_string, path);
+        while (1) {
+                random_string = rand_string();
+                printf("%s\n", random_string);
 
-        return 0;
+                pthread_mutex_lock(&mutex);
+                fd = open(path, O_WRONLY);
+                res = write(fd, random_string, strlen(random_string));
+                if (-1 == res) {
+                        printf("Write failed!\n");
+                }
+                pthread_mutex_unlock(&mutex);
+                printf("Written %s to %s\n", random_string, path);
+
+                usleep(2000000); //2s sleep
+        }
+
+        return;
 }
 
-uint8_t test_regime(const uint8_t msg_option, const char* path)
+void test_regime(const uint8_t msg_option, const char* path)
 {
+        uint8_t res;
         uint64_t fd;
+        char *encoded_string;
 
+        pthread_mutex_lock(&mutex);
         fd = open(path, O_WRONLY);
+        res = write(fd, test_vectors[msg_option - 1].test_input, strlen(test_vectors[msg_option - 1].test_input));
+        if (-1 == res) {
+                printf("Write failed!\n");
+        }
+        pthread_mutex_unlock(&mutex);
         printf("Written %s to %s\n", test_vectors[msg_option - 1].test_input, path);
 
-        return 0;
+
+        pthread_mutex_lock(&mutex);
+        res = read(fd, encoded_string, 250); //250 should be max number because max input string is 50 and max morse chars per letter is 5
+        if (-1 == res) {
+                printf("Read failed!\n");
+        }
+        pthread_mutex_unlock(&mutex);
+
+        if (!strcmp(test_vectors[msg_option - 1].test_input, encoded_string)){
+                printf("Encoder test succesfull!\n");
+        }
+
+        return;
 }

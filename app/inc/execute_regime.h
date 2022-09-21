@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include <unistd.h>
@@ -34,7 +35,7 @@ extern sem_t semStart;
 static char* rand_string(void);
 
 void test_setup(void);
-uint8_t normal_regime(const char* );
-uint8_t test_regime(const uint8_t, const char*);
+void normal_regime(const char* );
+void test_regime(const uint8_t, const char*);
 
 #endif
