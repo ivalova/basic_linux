@@ -8,6 +8,14 @@ int option;
 FILE *fd;
 char* path = "/dev/null";
 
+pthread_mutex_t mutex;
+enum mode       program_mode;
+uint8_t         msg_option; //1,2,3,4,5
+uint8_t         error_index; //0-n
+uint8_t         error_value; // ASCII char
+uint8_t         led; // green, red
+uint16_t        unit_duration; //ms
+
 static char *rand_string(void)
 {
     const char charset[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
