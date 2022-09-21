@@ -1,3 +1,3 @@
 
 
-void user_handler(void);
+void* user_handler(void*);

@@ -11,6 +11,7 @@ OUT_RELEASE = ${BINDIR}/app
 
 SRCDIR = src
 INCDIR = inc
+LIB = -lpthread
 
 all: app
 
@@ -22,7 +23,7 @@ before_build:
 	$(CC) -c $< -o $(OBJDIR)/$@ -I $(INCDIR)
 	
 app: $(OBJ)
-	$(LD) -o $(BINDIR)/$@ $(OBJ_PATH)
+	$(LD) -o $(BINDIR)/$@ $(OBJ_PATH) $(LIB)
 
 clean:
 	rm -rf $(OBJDIR)
