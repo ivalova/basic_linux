@@ -24,7 +24,7 @@ uint8_t         error_value; // ASCII char
 uint8_t         led; // green, red
 uint16_t        unit_duration; //ms
 
-static char *rand_string(void)
+static char* rand_string(void)
 {
         const char charset[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         uint8_t size;
@@ -81,26 +81,35 @@ void test_setup(void)
         return;
 }
 
-uint8_t normal_regime(const char* path)
+void normal_regime(const char *path)
 {
         char *random_string;
         uint64_t fd;
-    
-        random_string = rand_string();
-        printf("%s\n", random_string);
 
-        fd = open(path, O_WRONLY);
-        printf("Written %s to %s\n", random_string, path);
+        while (1) {
+                random_string = rand_string();
+                printf("%s\n", random_string);
 
-        return 0;
+                fd = open(path, O_WRONLY);
+                // TODO write to file
+                printf("Written %s to %s\n", random_string, path);
+
+                usleep(2000000); //2s sleep
+        }
+
+        return;
 }
 
-uint8_t test_regime(const uint8_t msg_option, const char* path)
+void test_regime(const uint8_t msg_option, const char* path)
 {
         uint64_t fd;
+        char *encoded_string;
 
         fd = open(path, O_WRONLY);
+        // TODO write to file
         printf("Written %s to %s\n", test_vectors[msg_option - 1].test_input, path);
 
-        return 0;
+        // TODO read encoded string
+
+        return;
 }

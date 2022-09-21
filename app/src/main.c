@@ -13,7 +13,7 @@ void* execute_regime(void* args)
         printf("Hello from execute_regime\n");
         test_setup();
 
-        while(1) {
+        while (1) {
                 if (sem_trywait(&semFinishSignal) == 0) {
                     break;
                 }
