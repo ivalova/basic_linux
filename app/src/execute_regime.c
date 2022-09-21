@@ -84,14 +84,20 @@ void test_setup(void)
 void normal_regime(const char *path)
 {
         char *random_string;
+        uint8_t res;
         uint64_t fd;
 
         while (1) {
                 random_string = rand_string();
                 printf("%s\n", random_string);
 
+                pthread_mutex_lock(&mutex);
                 fd = open(path, O_WRONLY);
-                // TODO write to file
+                res = write(fd, random_string, strlen(random_string));
+                if (-1 == res) {
+                        printf("Write failed!\n");
+                }
+                pthread_mutex_unlock(&mutex);
                 printf("Written %s to %s\n", random_string, path);
 
                 usleep(2000000); //2s sleep
@@ -102,14 +108,30 @@ void normal_regime(const char *path)
 
 void test_regime(const uint8_t msg_option, const char* path)
 {
+        uint8_t res;
         uint64_t fd;
         char *encoded_string;
 
+        pthread_mutex_lock(&mutex);
         fd = open(path, O_WRONLY);
-        // TODO write to file
+        res = write(fd, test_vectors[msg_option - 1].test_input, strlen(test_vectors[msg_option - 1].test_input));
+        if (-1 == res) {
+                printf("Write failed!\n");
+        }
+        pthread_mutex_unlock(&mutex);
         printf("Written %s to %s\n", test_vectors[msg_option - 1].test_input, path);
 
-        // TODO read encoded string
+
+        pthread_mutex_lock(&mutex);
+        res = read(fd, encoded_string, 250); //250 should be max number because max input string is 50 and max morse chars per letter is 5
+        if (-1 == res) {
+                printf("Read failed!\n");
+        }
+        pthread_mutex_unlock(&mutex);
+
+        if (!strcmp(test_vectors[msg_option - 1].test_input, encoded_string)){
+                printf("Encoder test succesfull!\n");
+        }
 
         return;
 }
