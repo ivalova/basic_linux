@@ -67,20 +67,22 @@ static ssize_t read_from_device(
 	size_t buf_size,
 	loff_t *ppos) {
 
-	ssize_t bytes_read;
+	int max_bytes;
+	ssize_t bytes_read, bytes_to_read;
 
-	bytes_read = 0;
+	max_bytes = BUFFER_SIZE - *ppos;
 
-	if(buf_size > BUFFER_SIZE)
-		pr_info(
-			"[%s] Buffer size too large (%lu), max size: %ud\n",
-			__func__,
-			buf_size,
-			BUFFER_SIZE);
-	else {
-		bytes_read = buf_size - copy_to_user(buf, device_buffer, buf_size);
-		pr_info("[%s] Bytes read successfully.\n", __func__);
-	}
+	if(max_bytes > buf_size)
+		bytes_to_read = buf_size;
+	else
+		bytes_to_read = max_bytes;
+
+	if(bytes_to_read == 0)
+		pr_info("[%s] Reached the end of the device.\n", __func__);
+
+	bytes_read = bytes_to_read - copy_to_user(buf, device_buffer + *ppos, bytes_to_read);
+	*ppos += bytes_read;
+	pr_info("[%s] Bytes has been read successfully.\n", __func__);
 
 	return bytes_read;
 }
@@ -93,17 +95,24 @@ static ssize_t write_to_device(
 	loff_t *ppos) {
 
 	ssize_t bytes_written;
+	int i;
 
 	bytes_written = 0;
+	*ppos = 0;
+
+	// Clear buffer
+	for(i = 0; i < BUFFER_SIZE; i++)
+		device_buffer[i] = (char)0;
 
 	if(buf_size > BUFFER_SIZE)
 		pr_info(
-			"[%s] Buffer size too large (%lu), max size: %ud\n",
+			"[%s] Buffer size too large (%lu), max size: %d\n",
 			__func__,
 			buf_size,
 			BUFFER_SIZE);
 	else {
 		bytes_written = buf_size - copy_from_user(device_buffer, buf, buf_size);
+		*ppos += bytes_written;
 		pr_info("[%s] Bytes written successfully.\n", __func__);
 	}
 
