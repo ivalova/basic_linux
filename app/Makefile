@@ -3,7 +3,7 @@ CC = ${CROSS_COMPILE}gcc
 LD = ${CROSS_COMPILE}gcc
 
 OBJDIR = obj
-OBJ= main.o user_handler.o execute_regime.o
+OBJ= main.o user_handler.o execute_regime.o device_com.o
 OBJ_PATH = $(addprefix ${OBJDIR}/,${OBJ})
 
 BINDIR = bin

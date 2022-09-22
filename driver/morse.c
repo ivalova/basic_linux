@@ -17,6 +17,8 @@ MODULE_LICENSE("GPLv3");
 #define BUFFER_SIZE_MORSE 250
 #define DEVICE_NAME "morse"
 
+#define WR_VALUE _IOW('a','a',int32_t*)
+#define RD_VALUE _IOR('a','b',int32_t*)
 
 /* FUNCTION DECLARATIONS
    ===================== */
@@ -28,6 +30,7 @@ static int open_device(struct inode*, struct file*);
 static int close_device(struct inode*, struct file*);
 static ssize_t read_from_device(struct file*, char*, size_t, loff_t*);
 static ssize_t write_to_device(struct file*, const char*, size_t, loff_t*);
+static long etx_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
 
 
 /* GLOBALS
@@ -37,15 +40,39 @@ struct cdev *character_device;
 static char device_buffer[BUFFER_SIZE];
 dev_t device_number;
 
+int32_t value = 0;
+
 struct file_operations fops = {
 	.owner = THIS_MODULE,
 	.open = open_device,
 	.release = close_device,
 	.write = write_to_device,
-	.read = read_from_device
+	.read = read_from_device,
+	.unlocked_ioctl = etx_ioctl
 };
 
-
+static long etx_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+{
+         switch(cmd) {
+                case WR_VALUE:
+                        if( copy_from_user(&value ,(int32_t*) arg, sizeof(value)) )
+                        {
+                                pr_err("Data Write : Err!\n");
+                        }
+                        pr_info("Value = %d\n", value);
+                        break;
+                case RD_VALUE:
+                        if( copy_to_user((int32_t*) arg, &value, sizeof(value)) )
+                        {
+                                pr_err("Data Read : Err!\n");
+                        }
+                        break;
+                default:
+                        pr_info("Default\n");
+                        break;
+        }
+        return 0;
+}
 
 /* FUNCTION DEFINITIONS
    ==================== */

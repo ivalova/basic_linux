@@ -1,3 +1,4 @@
+#include "device_com.h"
 #include "user_handler.h"
 #include "execute_regime.h"
 
@@ -5,7 +6,7 @@
 #include <pthread.h>
 #include <unistd.h>
 
-char*           path;
+static char* device_path = "/dev/morse";
 uint8_t         msg_option; //1,2,3,4,5
 
 void* execute_regime(void* args)
@@ -21,10 +22,10 @@ void* execute_regime(void* args)
                 if (sem_trywait(&semStart) == 0) {
                         switch (program_mode) {
                                 case MODE_NORMAL:
-                                        normal_regime(path);
+                                        normal_regime(device_path);
                                         break;
                                 case MODE_CUSTOM_MSG:
-                                        test_regime(msg_option, path);
+                                        test_regime(msg_option, device_path);
                                         break;
                                 case MODE_CUSTOM_MSG_ERR:
                                         //error_regime();
@@ -61,6 +62,8 @@ int main (int argc, char *argv[])
 
         pthread_join(user_handler_thread, NULL);
         pthread_join(execute_regime_thread, NULL);
+
+        ioctl_write();
 
         printf("Exiting...\n");
 

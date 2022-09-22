@@ -1,2 +1,10 @@
 app/obj/*
 app/bin/*
+driver/*.cmd
+driver/*.ko
+driver/*.o
+driver/*.mod
+driver/*.symvers
+driver/*.order
+driver/*.mod.c
+.vscode/*
