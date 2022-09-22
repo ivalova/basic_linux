@@ -39,7 +39,7 @@ void user_handler(void)
                         /*break intentionally ommited */
                 case MODE_STOP_SENDING:
                         pthread_mutex_lock(&program_mutex);
-                        printf("program mode updated\n");
+                        PRINT_DEBUG("program mode updated\n");
                         program_mode = user_input_dec;
                         pthread_mutex_unlock(&program_mutex);
                         sem_post(&semStart);
@@ -63,13 +63,13 @@ void user_handler(void)
                         
                         pthread_mutex_unlock(&program_mutex);
                         sem_post(&semStart);
-                        printf("sem posted for MODE_CUSTOM_MSG");
+                        PRINT_DEBUG("sem posted for MODE_CUSTOM_MSG\n");
                         /*break intentionally ommited */
                 case MODE_CUSTOM_MSG_ERR:
                         break;
                 case MODE_EXIT:
                         sem_post(&semFinishSignal);
-                        printf("terminate user_handler.\n");
+                        PRINT_DEBUG("terminate user_handler.\n");
                         return;
                         break;
         }

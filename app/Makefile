@@ -20,7 +20,7 @@ before_build:
 	mkdir -p $(BINDIR)
 
 %.o :  ${SRCDIR}/%.c before_build
-	$(CC) -c $< -o $(OBJDIR)/$@ -I $(INCDIR)
+	$(CC) $(COPTS) -c $< -o $(OBJDIR)/$@ -I $(INCDIR)
 	
 app: $(OBJ)
 	$(LD) -o $(BINDIR)/$@ $(OBJ_PATH) $(LIB)

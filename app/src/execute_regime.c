@@ -91,7 +91,7 @@ void normal_regime(const char *path)
 
         while (1) {
                 random_string = rand_string();
-                printf("%s\n", random_string);
+                PRINT_DEBUG("%s\n", random_string);
 
                 pthread_mutex_lock(&mutex);
                 fd = open(path, O_WRONLY);
@@ -100,7 +100,7 @@ void normal_regime(const char *path)
                         printf("Write failed!\n");
                 }
                 pthread_mutex_unlock(&mutex);
-                printf("Written %s to %s\n", random_string, path);
+                PRINT_DEBUG("Written %s to %s\n", random_string, path);
 
                 usleep(2000000); //2s sleep
         }
@@ -121,7 +121,7 @@ void test_regime(const uint8_t msg_option, const char* path)
                 printf("Write failed!\n");
         }
         pthread_mutex_unlock(&mutex);
-        printf("Written %s to %s\n", test_vectors[msg_option - 1].test_input, path);
+        PRINT_DEBUG("Written %s to %s\n", test_vectors[msg_option - 1].test_input, path);
 
 
         pthread_mutex_lock(&mutex);
