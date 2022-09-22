@@ -20,14 +20,6 @@
 #define PRINT_DEBUG(...)
 #endif
 
-enum mode {
-        MODE_NORMAL = 0,
-        MODE_CUSTOM_MSG = 1,
-        MODE_CUSTOM_MSG_ERR = 2,
-        MODE_STOP_SENDING = 3,
-        MODE_EXIT = 4
-};
-
 extern pthread_mutex_t  program_mutex;
 extern enum mode        program_mode;
 extern char             *device_path;

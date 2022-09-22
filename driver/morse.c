@@ -5,6 +5,8 @@
 #include <linux/semaphore.h>
 #include <linux/uaccess.h>
 
+#include "ioctl_interface.h"
+
 MODULE_AUTHOR("Group 1");
 MODULE_DESCRIPTION("Simple character device driver");
 MODULE_LICENSE("GPLv3");
@@ -17,8 +19,6 @@ MODULE_LICENSE("GPLv3");
 #define BUFFER_SIZE_MORSE 250
 #define DEVICE_NAME "morse"
 
-#define WR_VALUE _IOW('a','a',int32_t*)
-#define RD_VALUE _IOR('a','b',int32_t*)
 
 /* FUNCTION DECLARATIONS
    ===================== */
@@ -40,7 +40,7 @@ struct cdev *character_device;
 static char device_buffer[BUFFER_SIZE];
 dev_t device_number;
 
-int32_t value = 0;
+test_error_mode_data_t test_error_data;
 
 struct file_operations fops = {
 	.owner = THIS_MODULE,
@@ -55,14 +55,15 @@ static long etx_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
          switch(cmd) {
                 case WR_VALUE:
-                        if( copy_from_user(&value ,(int32_t*) arg, sizeof(value)) )
+                        if( copy_from_user(&test_error_data ,(int32_t *) arg, sizeof(test_error_data)) )
                         {
                                 pr_err("Data Write : Err!\n");
                         }
-                        pr_info("Value = %d\n", value);
+						pr_info("Value = %d\n", test_error_data.char_index_to_change);
+                        // TODO: here we can handle the received test_error_data
                         break;
                 case RD_VALUE:
-                        if( copy_to_user((int32_t*) arg, &value, sizeof(value)) )
+                        if( copy_to_user((int32_t*) arg, &test_error_data, sizeof(test_error_data)) )
                         {
                                 pr_err("Data Read : Err!\n");
                         }

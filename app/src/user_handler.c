@@ -1,5 +1,6 @@
 #include "execute_regime.h"
 #include "common.h"
+#include "ioctl_interface.h"
 
 #include <stdio.h>
 #include <stdbool.h>

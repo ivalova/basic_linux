@@ -4,18 +4,25 @@
 #include <sys/ioctl.h>
 
 #include "device_com.h"
+#include "ioctl_interface.h"
 
-int32_t number = 13;
 static char* device_path = "/dev/morse";
 
-void ioctl_write()
+void ioctl_send_test_error(uint8_t char_index_to_change, char new_char_value)
 {
     int fd = open(device_path, O_RDWR);
     if (fd < 0)
     {
         fprintf(stderr, "Error: cannot open char device\n");
     }
-    if (ioctl(fd, WR_VALUE, (int32_t*) &number))
+
+    const test_error_mode_data_t test_error_mode = {
+            .mode_regime = MODE_CUSTOM_MSG_ERR,
+            .char_index_to_change = char_index_to_change,
+            .new_char_value = new_char_value
+    };
+
+    if (ioctl(fd, WR_VALUE, (test_error_mode_data_t*) &test_error_mode))
     {
         fprintf(stderr, "Error: cannot perform ioctl to char device\n");
     }

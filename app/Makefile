@@ -10,6 +10,7 @@ BINDIR = bin
 OUT_RELEASE = ${BINDIR}/app
 
 SRCDIR = src
+COMMON_INCDIR = ../common
 INCDIR = inc
 LIB = -lpthread
 
@@ -20,7 +21,7 @@ before_build:
 	mkdir -p $(BINDIR)
 
 %.o :  ${SRCDIR}/%.c before_build
-	$(CC) $(COPTS) -c $< -o $(OBJDIR)/$@ -I $(INCDIR)
+	$(CC) $(COPTS) -c $< -o $(OBJDIR)/$@ -I $(INCDIR) -I $(COMMON_INCDIR)
 	
 app: $(OBJ)
 	$(LD) -o $(BINDIR)/$@ $(OBJ_PATH) $(LIB)

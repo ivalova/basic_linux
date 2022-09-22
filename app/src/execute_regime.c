@@ -1,4 +1,6 @@
 #include "execute_regime.h"
+#include "common.h"
+#include "ioctl_interface.h"
 
 const char* test_input1 = "BORNA12345";
 const char* test_input2 = "IVAN690LOV";

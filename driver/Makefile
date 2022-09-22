@@ -7,6 +7,8 @@ KERNEL_UNAME := $(shell uname -r)
 KERNEL_SOURCES = /lib/modules/$(KERNEL_UNAME)/build
 endif
 
+EXTRA_CFLAGS=-I$(PWD)/../common
+
 default: modules
 .PHONY: default
 

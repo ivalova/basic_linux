@@ -1,9 +1,10 @@
 #ifndef DEVICE_COM_H
 #define DEVICE_COM_H
 
-#define WR_VALUE _IOW('a','a',int32_t*)
-#define RD_VALUE _IOR('a','b',int32_t*)
+#include <stdint.h>
 
-void ioctl_write();
+#include "ioctl_interface.h"
+
+void ioctl_send_test_error(uint8_t char_index_to_change, char new_char_value);
 
 #endif
