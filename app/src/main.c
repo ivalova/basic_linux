@@ -53,6 +53,9 @@ int main (int argc, char *argv[])
         pthread_t user_handler_thread;
         pthread_t execute_regime_thread;
 
+        sem_init(&semFinishSignal,0,0);
+        sem_init(&semStart,0,0);
+
         pthread_create(&user_handler_thread, NULL, user_handler, 0);
         pthread_create(&execute_regime_thread, NULL, execute_regime, 0);
 

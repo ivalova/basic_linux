@@ -1,4 +1,5 @@
 #include "execute_regime.h"
+#include "common.h"
 
 const char* test_input1 = "BORNA123";
 const char* test_input2 = "IVAN690";
@@ -15,9 +16,10 @@ const char* test_output5 = "..-. .. .-.. . --... -----";
 sem_t semFinishSignal;
 sem_t semStart;
 
-test_pairs_t test_vectors[5];
+test_pairs_t test_vectors[CUSTOM_MSG_COUNT];
 
 pthread_mutex_t mutex;
+pthread_mutex_t program_mutex;
 enum mode       program_mode;
 uint8_t         error_index; //0-n
 uint8_t         error_value; // ASCII char
