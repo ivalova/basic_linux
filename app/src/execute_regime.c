@@ -1,6 +1,7 @@
 #include "execute_regime.h"
 #include "common.h"
 #include "ioctl_interface.h"
+#include "device_com.h"
 
 const char* test_input1 = "BORNA12345";
 const char* test_input2 = "IVAN690LOV";
@@ -163,8 +164,9 @@ void* execute_regime(void* args)
                                 case MODE_CUSTOM_MSG_ERR:
                                         PRINT_DEBUG("Entering error regime\n");
                                         //Add ioctl mode change to error mode
+                                        // TODO: how to get the index and char value to change?
                                         test_regime();
-                                        //Reset ioctl mode back to normal
+                                        ioctl_set_mode_to_normal();
                                         break;
                                 case MODE_STOP_SENDING:
                                         PRINT_DEBUG("Entering idle regime\n");
