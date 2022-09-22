@@ -78,11 +78,14 @@ static void normal_regime(void)
         uint8_t res;
         uint64_t fd;
 
+        fd = open(device_path, O_WRONLY);
+        if (fd<0) {
+                printf("Opening failed!\n");
+        }
         while (1) {
                 random_string = rand_string();
                 PRINT_DEBUG("%s\n", random_string);
 
-                fd = open(device_path, O_WRONLY);
                 res = write(fd, random_string, strlen(random_string));
                 if (-1 == res) {
                         printf("Write failed!\n");
@@ -103,6 +106,10 @@ static void test_regime(void)
         char *encoded_string;
 
         fd = open(device_path, O_WRONLY);
+        if (fd<0) {
+                printf("Opening failed!\n");
+        }
+        
         res = write(fd, test_vectors[msg_option].test_input, 
                 strlen(test_vectors[msg_option].test_input));
 
