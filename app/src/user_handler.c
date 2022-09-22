@@ -7,6 +7,9 @@
 //todo add description
 bool is_mode_valid(uint8_t input);
 bool is_custom_msg_valid(uint8_t input);
+bool is_error_index_valid(uint8_t input);
+bool is_error_value_valid(uint8_t input);
+bool is_error_value_valid(uint8_t input);
 
 void user_handler(void)
 {       
@@ -28,7 +31,7 @@ void user_handler(void)
 
         if(!is_mode_valid(user_input_dec))
         {
-        printf("Invalid mode selected! Valid options are [0-4]. You have selected: %d \n", user_input_dec); 
+        printf("Invalid mode selected! Valid options are [0-4]. You have selected ASCII value: %d \n", user_input); 
                continue;
         }
 
@@ -55,17 +58,57 @@ void user_handler(void)
 
                         if(!is_custom_msg_valid(user_input_dec))
                         {
-                                printf("Invalid custom message selected! Valid options are [0-4]. You have selected: %d \n", user_input_dec); 
+                                printf("Invalid custom message selected! Valid options are [0-%d]. You have selected ASCII value: %d \n", TEST_MODE_COUNT-1, user_input); 
                                 continue;
                         }
                         msg_option = user_input_dec;
                         
-                        
                         pthread_mutex_unlock(&program_mutex);
                         sem_post(&semStart);
                         PRINT_DEBUG("sem posted for MODE_CUSTOM_MSG\n");
-                        /*break intentionally ommited */
+                        break;
                 case MODE_CUSTOM_MSG_ERR:
+                        pthread_mutex_lock(&program_mutex);
+                        program_mode = user_input_dec;
+
+                        printf("Select predefined message: ");
+
+                        while((user_input = getchar()) == '\n');
+                        user_input_dec = user_input - ascii_to_dec;
+
+                        if(!is_custom_msg_valid(user_input_dec))
+                        {
+                                printf("Invalid custom message selected! Valid options are [0-%d]. You have selected ASCII value: %d \n", CUSTOM_MSG_COUNT-1, user_input); 
+                                continue;
+                        }
+                        msg_option = user_input_dec;
+
+                        printf("Select index of test string where error character will be injected:");
+                        while((user_input = getchar()) == '\n');
+                        user_input_dec = user_input - ascii_to_dec;
+
+                        if(!is_error_index_valid(user_input_dec))
+                        {
+                                printf("Invalid error index selected! Valid options are [0-%d]. You have selected ASCII value: %d \n", CUSTOM_MSG_LENGTH-1, user_input); 
+                                continue;
+                        }
+                        error_index  = user_input_dec;
+
+                        printf("Select ASCII character for error injection:");
+                        while((user_input = getchar()) == '\n');
+
+                        if(!is_error_value_valid(user_input))
+                        {
+                                printf("Invalid character selected! You have selected: %c \n",user_input); 
+                                continue;
+                        }
+                        error_index  = user_input_dec;
+
+
+                        pthread_mutex_unlock(&program_mutex);
+                        sem_post(&semStart);
+                        PRINT_DEBUG("sem posted for MODE_CUSTOM_MSG\n");
+
                         break;
                 case MODE_EXIT:
                         sem_post(&semFinishSignal);
@@ -95,6 +138,28 @@ bool is_custom_msg_valid(uint8_t input)
         bool            valid = false;
         
         if(input < CUSTOM_MSG_COUNT){
+                valid = true;
+        }
+        
+        return valid;
+}
+
+bool is_error_index_valid(uint8_t input)
+{
+        bool            valid = false;
+        
+        if(input < CUSTOM_MSG_LENGTH){
+                valid = true;
+        }
+        
+        return valid;
+}
+
+bool is_error_value_valid(uint8_t input)
+{
+        bool            valid = false;
+        
+        if((input < 127) && (input > 31)){
                 valid = true;
         }
         
