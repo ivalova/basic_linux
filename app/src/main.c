@@ -2,47 +2,14 @@
 #include "user_handler.h"
 #include "execute_regime.h"
 
-#include <stdio.h>
-#include <pthread.h>
-#include <unistd.h>
+char* device_path = "/dev/morse";
+uint8_t msg_option; //1,2,3,4,5
+uint8_t error_index; //0-n
+sem_t semFinishSignal;
+sem_t semStart;
+pthread_mutex_t  program_mutex;
 
-static char* device_path = "/dev/morse";
-uint8_t         msg_option; //1,2,3,4,5
-
-void* execute_regime(void* args)
-{
-        printf("Hello from execute_regime\n");
-        test_setup();
-
-        while (1) {
-                if (sem_trywait(&semFinishSignal) == 0) {
-                    break;
-                }
-
-                if (sem_trywait(&semStart) == 0) {
-                        switch (program_mode) {
-                                case MODE_NORMAL:
-                                        normal_regime(device_path);
-                                        break;
-                                case MODE_CUSTOM_MSG:
-                                        test_regime(msg_option, device_path);
-                                        break;
-                                case MODE_CUSTOM_MSG_ERR:
-                                        //error_regime();
-                                        break;
-                                case MODE_STOP_SENDING:
-                                        //idle_regime();
-                                        break;
-                                default:
-                                        printf("Invalid mode selected, please select a valid mode!\n");
-                                        break;
-                        }
-                }
-        }
-
-        printf("Shutting down!\n");
-        return 0;
-}
+enum mode program_mode;
 
 int main (int argc, char *argv[])
 {

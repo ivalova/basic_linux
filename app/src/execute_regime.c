@@ -1,41 +1,30 @@
 #include "execute_regime.h"
-#include "common.h"
 
-const char* test_input1 = "BORNA123";
-const char* test_input2 = "IVAN690";
-const char* test_input3 = "DMIJIC456";
-const char* test_input4 = "MA773OB";
-const char* test_input5 = "FILE70";
+const char* test_input1 = "BORNA12345";
+const char* test_input2 = "IVAN690LOV";
+const char* test_input3 = "D MIJIC456";
+const char* test_input4 = "MA773OBRIS";
+const char* test_input5 = "FILE70GARM";
 
-const char* test_output1 = "-... --- .-. -. .- .---- ..--- ...--";
-const char* test_output2 = ".. ...- .- -. -.... ----. -----";
-const char* test_output3 = "-.. -- .. .--- .. -.-. ....- ..... -....";
-const char* test_output4 = "-- .- --... --... ...-- --- -...";
-const char* test_output5 = "..-. .. .-.. . --... -----";
+const char* test_output1 = "-...*---*.-.*-.*.-*.----*..---*...--*....-*.....";
+const char* test_output2 = "..*...-*.-*-.*-....*----.*-----*.-..*---*...-";
+const char* test_output3 = "-.._--*..*.---*..*-.-.*....-*.....*-....";
+const char* test_output4 = "--*.-*--...*--...*...--*---*-...*.-.*..*...";
+const char* test_output5 = "..-.*..*.-..*.*--...*-----*--.*.-*.-.*--";
 
-sem_t semFinishSignal;
-sem_t semStart;
-
-test_pairs_t test_vectors[CUSTOM_MSG_COUNT];
-
-pthread_mutex_t mutex;
-pthread_mutex_t program_mutex;
-enum mode       program_mode;
-uint8_t         error_index; //0-n
-uint8_t         error_value; // ASCII char
-uint8_t         led; // green, red
-uint16_t        unit_duration; //ms
+struct test_pairs test_vectors[CUSTOM_MSG_COUNT];
 
 static char* rand_string(void)
 {
-        const char charset[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        const char charset[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
         uint8_t size;
+        char* str;
 
         do {
                 size = rand() % 51;
         }while(size<=0);
 
-        char* str = malloc(size + 1);
+        str = malloc(size + 1);
 
         for (uint8_t n = 0; n < size; ++n) {
                 uint8_t key = rand() % (uint8_t) (sizeof charset - 1);
@@ -49,27 +38,27 @@ static char* rand_string(void)
 
 void test_setup(void)
 {
-        const test_pairs_t test_pair1 = {
+        const struct test_pairs test_pair1 = {
                 .test_input = test_input1,
                 .test_output = test_output1
         };
 
-        const test_pairs_t test_pair2 = {
+        const struct test_pairs test_pair2 = {
                 .test_input = test_input2,
                 .test_output = test_output2
         };
 
-        const test_pairs_t test_pair3 = {
+        const struct test_pairs test_pair3 = {
                 .test_input = test_input3,
                 .test_output = test_output3
         };
 
-        const test_pairs_t test_pair4 = {
+        const struct test_pairs test_pair4 = {
                 .test_input = test_input4,
                 .test_output = test_output4
         };
 
-        const test_pairs_t test_pair5 = {
+        const struct test_pairs test_pair5 = {
                 .test_input = test_input5,
                 .test_output = test_output5
         };
@@ -83,7 +72,7 @@ void test_setup(void)
         return;
 }
 
-void normal_regime(const char *path)
+void normal_regime(void)
 {
         char *random_string;
         uint8_t res;
@@ -93,47 +82,90 @@ void normal_regime(const char *path)
                 random_string = rand_string();
                 PRINT_DEBUG("%s\n", random_string);
 
-                pthread_mutex_lock(&mutex);
-                fd = open(path, O_WRONLY);
+                fd = open(device_path, O_WRONLY);
                 res = write(fd, random_string, strlen(random_string));
                 if (-1 == res) {
                         printf("Write failed!\n");
                 }
-                pthread_mutex_unlock(&mutex);
-                PRINT_DEBUG("Written %s to %s\n", random_string, path);
+
+                PRINT_DEBUG("Written %s to %s\n", random_string, device_path);
 
                 usleep(2000000); //2s sleep
         }
-
+        close(fd);
         return;
 }
 
-void test_regime(const uint8_t msg_option, const char* path)
+void test_regime(void)
 {
         uint8_t res;
         uint64_t fd;
         char *encoded_string;
 
-        pthread_mutex_lock(&mutex);
-        fd = open(path, O_WRONLY);
-        res = write(fd, test_vectors[msg_option - 1].test_input, strlen(test_vectors[msg_option - 1].test_input));
+        fd = open(device_path, O_WRONLY);
+        res = write(fd, test_vectors[msg_option].test_input, 
+                strlen(test_vectors[msg_option].test_input));
+
         if (-1 == res) {
                 printf("Write failed!\n");
         }
-        pthread_mutex_unlock(&mutex);
-        PRINT_DEBUG("Written %s to %s\n", test_vectors[msg_option - 1].test_input, path);
 
+        PRINT_DEBUG("Written %s to %s\n", 
+                test_vectors[msg_option].test_input, 
+                device_path);
 
-        pthread_mutex_lock(&mutex);
-        res = read(fd, encoded_string, 250); //250 should be max number because max input string is 50 and max morse chars per letter is 5
+        encoded_string = malloc(1001);
+        res = read(fd, encoded_string, 1000);
         if (-1 == res) {
                 printf("Read failed!\n");
         }
-        pthread_mutex_unlock(&mutex);
 
-        if (!strcmp(test_vectors[msg_option - 1].test_input, encoded_string)){
+        if (!strcmp(test_vectors[msg_option].test_output, encoded_string)){
                 printf("Encoder test succesfull!\n");
         }
+        else {
+                printf("Encoder test unsuccesfull! Expected:\n%s\nGot:%s\n", 
+                        test_vectors[msg_option].test_output, 
+                        encoded_string);
+        }
 
+        close(fd);
         return;
+}
+
+void* execute_regime(void* args)
+{
+        test_setup();
+
+        while (1) {
+                if (sem_trywait(&semFinishSignal) == 0) {
+                    break;
+                }
+
+                if (sem_trywait(&semStart) == 0) {
+                        switch (program_mode) {
+                                case MODE_NORMAL:
+                                        PRINT_DEBUG("Entering normal regime\n");
+                                        normal_regime();
+                                        break;
+                                case MODE_CUSTOM_MSG:
+                                        PRINT_DEBUG("Entering test regime\n");
+                                        test_regime();
+                                        break;
+                                case MODE_CUSTOM_MSG_ERR:
+                                        PRINT_DEBUG("Entering error regime\n");
+                                        //Add ioctl mode change to error mode
+                                        test_regime();
+                                        //Reset ioctl mode back to normal
+                                        break;
+                                case MODE_STOP_SENDING:
+                                        PRINT_DEBUG("Entering idle regime\n");
+                                        break;
+                                default:
+                                        break;
+                        }
+                }
+        }
+
+        return 0;
 }
