@@ -16,8 +16,9 @@ MODULE_LICENSE("GPLv3");
    ====== */
 
 #define BUFFER_SIZE 50
-#define BUFFER_SIZE_MORSE 250
+#define BUFFER_SIZE_MORSE 1000
 #define DEVICE_NAME "morse"
+
 
 
 /* FUNCTION DECLARATIONS
@@ -32,12 +33,16 @@ static ssize_t read_from_device(struct file*, char*, size_t, loff_t*);
 static ssize_t write_to_device(struct file*, const char*, size_t, loff_t*);
 static long etx_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
 
+static void encode(void);
+static void char2morse(char, int*);
+
 
 /* GLOBALS
    ======= */
 
 struct cdev *character_device;
 static char device_buffer[BUFFER_SIZE];
+static char device_buffer_morse[BUFFER_SIZE_MORSE];
 dev_t device_number;
 
 test_error_mode_data_t test_error_data;
@@ -50,6 +55,7 @@ struct file_operations fops = {
 	.read = read_from_device,
 	.unlocked_ioctl = etx_ioctl
 };
+
 
 static long etx_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
@@ -75,16 +81,19 @@ static long etx_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
         return 0;
 }
 
+
 /* FUNCTION DEFINITIONS
    ==================== */
 
 
 static int open_device(struct inode *pinode, struct file *fp) {
+	pr_info("[%s] Device is opened.\n", __func__);
 	return 0;
 }
 
 
 static int close_device(struct inode *pinode, struct file *fp) {
+	pr_info("[%s] Device is closed.\n", __func__);
 	return 0;
 }
 
@@ -110,6 +119,7 @@ static ssize_t read_from_device(
 
 	bytes_read = bytes_to_read - copy_to_user(buf, device_buffer + *ppos, bytes_to_read);
 	*ppos += bytes_read;
+
 	pr_info("[%s] Bytes has been read successfully.\n", __func__);
 
 	return bytes_read;
@@ -132,6 +142,9 @@ static ssize_t write_to_device(
 	for(i = 0; i < BUFFER_SIZE; i++)
 		device_buffer[i] = (char)0;
 
+	for(i = 0; i < BUFFER_SIZE_MORSE; i++)
+		device_buffer_morse[i] = (char)0;
+
 	if(buf_size > BUFFER_SIZE)
 		pr_info(
 			"[%s] Buffer size too large (%lu), max size: %d\n",
@@ -142,9 +155,290 @@ static ssize_t write_to_device(
 		bytes_written = buf_size - copy_from_user(device_buffer, buf, buf_size);
 		*ppos += bytes_written;
 		pr_info("[%s] Bytes written successfully.\n", __func__);
+
+		encode();
 	}
 
 	return bytes_written;
+}
+
+
+static void encode(void) {
+	int i;
+	int pos;
+
+	pos = 0;
+
+	for(i = 0; device_buffer[i] != '\0'; i++) {
+		if(device_buffer[i] != ' ')
+			char2morse(device_buffer[i], &pos);
+
+		if(device_buffer[i + 1] != '\0') {
+			if(device_buffer[i] == ' ')
+				device_buffer_morse[pos] = '_';
+			else
+				device_buffer_morse[pos] = '*';
+
+			pos++;
+		}
+	}
+
+	pr_info("Received string: %s\n", device_buffer);
+	pr_info("Encoded string: %s\n", device_buffer_morse);
+}
+
+
+static void char2morse(char c, int *offset) {
+	int j;
+	j = *offset;
+
+	switch(c) {
+		case 'A':
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j]='-';
+		break;
+
+		case 'B':
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j]='.';
+		break;
+
+		case 'C':
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j]='.';
+		break;
+
+		case 'D':
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j]='.';
+		break;
+
+		case 'E':
+		device_buffer_morse[j]='.';
+		break;
+
+		case 'F':
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j]='.';
+		break;
+
+		case 'G':
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j]='.';
+		break;
+
+		case 'H':
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j]='.';
+		break;
+
+		 case 'I':
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j]='.';
+		break;
+
+		case 'J':
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j]='-';
+		break;
+
+		case 'K':
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j]='-';
+		break;
+
+		case 'L':
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j]='.';
+		break;
+
+		case 'M':
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j]='-';
+		break;
+
+		case 'N':
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j]='.';
+		break;
+
+		case 'O':
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j]='-';
+		break;
+
+		case 'P':
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j]='.';
+		break;
+
+		case 'Q':
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j]='-';
+		break;
+
+		case 'R':
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j]='.';
+		break;
+
+		case 'S':
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j]='.';
+		break;
+
+		case 'T':
+		device_buffer_morse[j]='-';
+		break;
+
+		case 'U':
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j]='-';
+		break;
+
+		case 'V':
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j]='-';
+		break;
+
+		case 'W':
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j]='-';
+		break;
+
+		case 'X':
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j]='-';
+		break;
+
+		case 'Y':
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j]='-';
+		break;
+
+		case 'Z':
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j]='.';
+		break;
+
+		case '0':
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j]='-';
+		break;
+
+		case '1':
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j]='-';
+		break;
+
+		case '2':
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j]='-';
+		break;
+
+		case '3':
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j]='-';
+		break;
+
+		case '4':
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j]='-';
+		break;
+
+		case '5':
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j]='.';
+		break;
+
+		case '6':
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j]='.';
+		break;
+
+		case '7':
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j]='.';
+		break;
+
+		case '8':
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='.';
+		device_buffer_morse[j]='.';
+		break;
+
+		case '9':
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j++]='-';
+		device_buffer_morse[j]='.';
+		break;;
+
+		default:
+			pr_info("[%s] Invalid character %c\n", __func__, c);
+			break;
+	}
+
+	*offset = j + 1;
 }
 
 
