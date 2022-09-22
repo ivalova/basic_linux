@@ -9,10 +9,10 @@ struct test_pairs{
 };
 
 static char* rand_string(void);
+static void test_setup(void);
+static void normal_regime(void);
+static void test_regime(void);
 
-void test_setup(void);
-void normal_regime(void);
-void test_regime(void);
 void* execute_regime(void* );
 
 #endif

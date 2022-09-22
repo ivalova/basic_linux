@@ -36,7 +36,7 @@ static char* rand_string(void)
         return str;
 }
 
-void test_setup(void)
+static void test_setup(void)
 {
         const struct test_pairs test_pair1 = {
                 .test_input = test_input1,
@@ -72,7 +72,7 @@ void test_setup(void)
         return;
 }
 
-void normal_regime(void)
+static void normal_regime(void)
 {
         char *random_string;
         uint8_t res;
@@ -96,7 +96,7 @@ void normal_regime(void)
         return;
 }
 
-void test_regime(void)
+static void test_regime(void)
 {
         uint8_t res;
         uint64_t fd;
@@ -109,7 +109,6 @@ void test_regime(void)
         if (-1 == res) {
                 printf("Write failed!\n");
         }
-
         PRINT_DEBUG("Written %s to %s\n", 
                 test_vectors[msg_option].test_input, 
                 device_path);
@@ -124,7 +123,7 @@ void test_regime(void)
                 printf("Encoder test succesfull!\n");
         }
         else {
-                printf("Encoder test unsuccesfull! Expected:\n%s\nGot:%s\n", 
+                printf("Encoder test unsuccesfull!\nExpected:\n%s\nGot:%s\n",
                         test_vectors[msg_option].test_output, 
                         encoded_string);
         }
