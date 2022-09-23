@@ -1,6 +1,5 @@
 #include "execute_regime.h"
-#include "common.h"
-#include "ioctl_interface.h"
+#include "timer_event.h"
 #include "device_com.h"
 
 const char* test_input1 = "BORNA12345";
@@ -75,7 +74,7 @@ static void test_setup(void)
         return;
 }
 
-static void normal_regime(void)
+static void* normal_regime(void* args)
 {
         char *random_string;
         uint8_t res;
@@ -85,21 +84,20 @@ static void normal_regime(void)
         if (fd<0) {
                 printf("Opening failed!\n");
         }
-        while (1) {
-                random_string = rand_string();
-                PRINT_DEBUG("%s\n", random_string);
 
-                res = write(fd, random_string, strlen(random_string));
-                if (-1 == res) {
-                        printf("Write failed!\n");
-                }
+        random_string = rand_string();
+        PRINT_DEBUG("%s\n", random_string);
 
-                PRINT_DEBUG("Written %s to %s\n", random_string, device_path);
-
-                usleep(2000000); //2s sleep
+        res = write(fd, random_string, strlen(random_string));
+        if (-1 == res) {
+                printf("Write failed!\n");
         }
+
+        printf("Written %s to %s\n", random_string, device_path);
+        PRINT_DEBUG("Written %s to %s\n", random_string, device_path);
+        
         close(fd);
-        return;
+        return 0;
 }
 
 static void test_regime(void)
@@ -112,7 +110,7 @@ static void test_regime(void)
         if (fd<0) {
                 printf("Opening failed!\n");
         }
-        
+
         res = write(fd, test_vectors[msg_option].test_input, 
                 strlen(test_vectors[msg_option].test_input));
 
@@ -144,6 +142,7 @@ static void test_regime(void)
 
 void* execute_regime(void* args)
 {
+        timer_event_t hNormalRegimeTimer;
         test_setup();
 
         while (1) {
@@ -155,7 +154,9 @@ void* execute_regime(void* args)
                         switch (program_mode) {
                                 case MODE_NORMAL:
                                         PRINT_DEBUG("Entering normal regime\n");
-                                        normal_regime();
+                                        timer_event_set(&hNormalRegimeTimer, 
+                                        NORMAL_REGIME_TIMEOUT, normal_regime, 
+                                        0, TE_KIND_REPETITIVE);
                                         break;
                                 case MODE_CUSTOM_MSG:
                                         PRINT_DEBUG("Entering test regime\n");
@@ -170,6 +171,7 @@ void* execute_regime(void* args)
                                         break;
                                 case MODE_STOP_SENDING:
                                         PRINT_DEBUG("Entering idle regime\n");
+                                        timer_event_kill(hNormalRegimeTimer);
                                         break;
                                 default:
                                         break;
