@@ -64,6 +64,7 @@ struct cdev *character_device;
 static char device_buffer[BUFFER_SIZE];
 static char device_buffer_morse[BUFFER_SIZE_MORSE];
 dev_t device_number;
+char normal_mode_signal = '1';
 
 enum mode current_mode = MODE_NORMAL;
 
@@ -143,18 +144,26 @@ static ssize_t read_from_device(
 	int max_bytes;
 	ssize_t bytes_read, bytes_to_read;
 
-	max_bytes = BUFFER_SIZE - *ppos;
+	if (MODE_NORMAL == current_mode){
+		bytes_to_read = 1 - *ppos;
+		bytes_read = bytes_to_read - copy_to_user(buf, &normal_mode_signal + *ppos, bytes_to_read);
+		*ppos += bytes_read;
+	}
+	else{
+		max_bytes = BUFFER_SIZE_MORSE - *ppos;
 
-	if(max_bytes > buf_size)
-		bytes_to_read = buf_size;
-	else
-		bytes_to_read = max_bytes;
+		if(max_bytes > buf_size)
+			bytes_to_read = buf_size;
+		else
+			bytes_to_read = max_bytes;
+
+		bytes_read = bytes_to_read - copy_to_user(buf, device_buffer_morse + *ppos, bytes_to_read);
+		*ppos += bytes_read;
+
+	}
 
 	if(bytes_to_read == 0)
 		pr_info("[%s] Reached the end of the device.\n", __func__);
-
-	bytes_read = bytes_to_read - copy_to_user(buf, device_buffer + *ppos, bytes_to_read);
-	*ppos += bytes_read;
 
 	pr_info("[%s] Bytes has been read successfully.\n", __func__);
 
@@ -181,9 +190,11 @@ static ssize_t write_to_device(
 	for(i = 0; i < BUFFER_SIZE_MORSE; i++)
 		device_buffer_morse[i] = (char)0;
 
+	normal_mode_signal = '0';
+
 	if(buf_size > BUFFER_SIZE)
 		pr_info(
-			"[%s] Buffer size too large (%lu), max size: %d\n",
+			"[%s] Buffer size too large (%zu), max size: %d\n",
 			__func__,
 			buf_size,
 			BUFFER_SIZE);
@@ -526,6 +537,7 @@ static void turn_off_led(void){
 
 static void signal_morse_code(void){
 	int i;
+	/* One unit is 300ms */
 	for(i = 0; device_buffer_morse[i] != '\0'; i++) {
 		if (device_buffer_morse[i] == '.'){
 			turn_on_led();
@@ -552,6 +564,8 @@ static void signal_morse_code(void){
 			msleep(2100);
 		}
 	}
+
+	normal_mode_signal = '1';
 }
 
 
