@@ -29,7 +29,7 @@ check_if_user_is_root() {
 
 clean_make_driver() {
     echo "[DRIVER] Clean and make..."
-    cd $DRIVER_LOCATION
+    cd ../$DRIVER_LOCATION
     make clean
     check_return_code_and_exit_if_error $?
     make KDIR=$KDIR_PATH
