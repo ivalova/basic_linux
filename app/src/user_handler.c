@@ -15,6 +15,7 @@ void user_handler(void)
         int             user_input_dec;
         const int       ascii_to_dec = 0x30;
 
+        printf("Always enter one character followed by enter for each command.\n");
         while(1)
         {
         user_input = 0;
@@ -22,8 +23,7 @@ void user_handler(void)
 
         if (sem_wait(&semGetInput) == 0) {
         printf("Select program mode: ");
-        
-        //user_input = getchar();
+
         while((user_input = getchar()) == '\n');
 
         user_input_dec = user_input - ascii_to_dec;
