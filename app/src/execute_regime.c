@@ -93,9 +93,9 @@ static void* normal_regime(void* args)
                 printf("Write failed!\n");
         }
 
-        printf("Written %s to %s\n", random_string, device_path);
         PRINT_DEBUG("Written %s to %s\n", random_string, device_path);
-        
+
+        free(random_string);        
         close(fd);
         return 0;
 }
@@ -136,6 +136,7 @@ static void test_regime(void)
                         encoded_string);
         }
 
+        free(encoded_string);
         close(fd);
         return;
 }
@@ -176,6 +177,7 @@ void* execute_regime(void* args)
                                 default:
                                         break;
                         }
+                        sem_post(&semGetInput);
                 }
         }
 

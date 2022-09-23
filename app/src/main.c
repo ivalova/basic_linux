@@ -6,6 +6,7 @@ char* device_path = "/dev/morse";
 uint8_t msg_option; //1,2,3,4,5
 uint8_t error_index; //0-n
 sem_t semFinishSignal;
+sem_t semGetInput;
 sem_t semStart;
 pthread_mutex_t  program_mutex;
 
@@ -22,6 +23,7 @@ int main (int argc, char *argv[])
         pthread_t execute_regime_thread;
 
         sem_init(&semFinishSignal,0,0);
+        sem_init(&semGetInput,0,1);
         sem_init(&semStart,0,0);
 
         pthread_create(&user_handler_thread, NULL, user_handler, 0);
