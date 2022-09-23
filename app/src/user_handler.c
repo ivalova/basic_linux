@@ -36,21 +36,35 @@ void user_handler(void)
                continue;
         }
 
-        printf("You have selected mode: %d \n", user_input_dec);
+        PRINT_DEBUG("You have selected mode: %d \n", user_input_dec);
 
         switch(user_input_dec){
                 case MODE_NORMAL:
-                        /*break intentionally ommited */
-                case MODE_STOP_SENDING:
+                        PRINT_DEBUG("MODE_NORMAL\n");
+
                         pthread_mutex_lock(&program_mutex);
-                        PRINT_DEBUG("program mode updated\n");
                         program_mode = user_input_dec;
                         pthread_mutex_unlock(&program_mutex);
+
                         sem_post(&semStart);
                         break;
-                case MODE_CUSTOM_MSG:
+
+                case MODE_STOP_SENDING:
+                        PRINT_DEBUG("MODE_STOP_SENDING\n");
+
                         pthread_mutex_lock(&program_mutex);
                         program_mode = user_input_dec;
+                        pthread_mutex_unlock(&program_mutex);
+
+                        sem_post(&semStart);
+                        break;
+
+                case MODE_CUSTOM_MSG:
+                        PRINT_DEBUG("MODE_CUSTOM_MSG\n");
+
+                        pthread_mutex_lock(&program_mutex);
+                        program_mode = user_input_dec;
+                        pthread_mutex_unlock(&program_mutex);
 
                         printf("Select predefined message: ");
 
@@ -60,17 +74,23 @@ void user_handler(void)
                         if(!is_custom_msg_valid(user_input_dec))
                         {
                                 printf("Invalid custom message selected! Valid options are [0-%d]. You have selected ASCII value: %d \n", TEST_MODE_COUNT-1, user_input); 
+
                                 continue;
                         }
+
+                        pthread_mutex_lock(&program_mutex);
                         msg_option = user_input_dec;
-                        
                         pthread_mutex_unlock(&program_mutex);
+
                         sem_post(&semStart);
                         PRINT_DEBUG("sem posted for MODE_CUSTOM_MSG\n");
                         break;
                 case MODE_CUSTOM_MSG_ERR:
+                        PRINT_DEBUG("MODE_CUSTOM_MSG\n");
+
                         pthread_mutex_lock(&program_mutex);
                         program_mode = user_input_dec;
+                        pthread_mutex_unlock(&program_mutex);
 
                         printf("Select predefined message: ");
 
@@ -80,9 +100,13 @@ void user_handler(void)
                         if(!is_custom_msg_valid(user_input_dec))
                         {
                                 printf("Invalid custom message selected! Valid options are [0-%d]. You have selected ASCII value: %d \n", CUSTOM_MSG_COUNT-1, user_input); 
+                                pthread_mutex_unlock(&program_mutex);
                                 continue;
                         }
+
+                        pthread_mutex_lock(&program_mutex);
                         msg_option = user_input_dec;
+                        pthread_mutex_unlock(&program_mutex);
 
                         printf("Select index of test string where error character will be injected:");
                         while((user_input = getchar()) == '\n');
@@ -91,22 +115,28 @@ void user_handler(void)
                         if(!is_error_index_valid(user_input_dec))
                         {
                                 printf("Invalid error index selected! Valid options are [0-%d]. You have selected ASCII value: %d \n", CUSTOM_MSG_LENGTH-1, user_input); 
+                                pthread_mutex_unlock(&program_mutex);
                                 continue;
                         }
+
+                        pthread_mutex_lock(&program_mutex);
                         error_index  = user_input_dec;
+                        pthread_mutex_unlock(&program_mutex);
 
                         printf("Select ASCII character for error injection:");
                         while((user_input = getchar()) == '\n');
 
                         if(!is_error_value_valid(user_input))
                         {
-                                printf("Invalid character selected! You have selected: %c \n",user_input); 
+                                printf("Invalid character selected! Only upper-case letters are allowed. You have selected: %c \n",user_input);
+                                pthread_mutex_unlock(&program_mutex);
                                 continue;
                         }
+
+                        pthread_mutex_lock(&program_mutex);
                         error_index  = user_input_dec;
-
-
                         pthread_mutex_unlock(&program_mutex);
+
                         sem_post(&semStart);
                         PRINT_DEBUG("sem posted for MODE_CUSTOM_MSG\n");
 
@@ -125,7 +155,7 @@ void user_handler(void)
 
 bool is_mode_valid(uint8_t input)
 {
-        bool            valid = false;
+        bool    valid = false;
         
         if(input < TEST_MODE_COUNT){
                 valid = true;
@@ -136,7 +166,7 @@ bool is_mode_valid(uint8_t input)
 
 bool is_custom_msg_valid(uint8_t input)
 {
-        bool            valid = false;
+        bool    valid = false;
         
         if(input < CUSTOM_MSG_COUNT){
                 valid = true;
@@ -147,7 +177,7 @@ bool is_custom_msg_valid(uint8_t input)
 
 bool is_error_index_valid(uint8_t input)
 {
-        bool            valid = false;
+        bool    valid = false;
         
         if(input < CUSTOM_MSG_LENGTH){
                 valid = true;
@@ -158,9 +188,9 @@ bool is_error_index_valid(uint8_t input)
 
 bool is_error_value_valid(uint8_t input)
 {
-        bool            valid = false;
+        bool    valid = false;
         
-        if((input < 127) && (input > 31)){
+        if((input <= 90) && (input >= 65)){
                 valid = true;
         }
         
