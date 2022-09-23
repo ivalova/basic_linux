@@ -79,6 +79,19 @@ struct file_operations fops = {
 	.unlocked_ioctl = etx_ioctl
 };
 
+static void inject_error(void)
+{
+        if(strlen(device_buffer_morse) < 1)
+        return;
+
+        if (device_buffer_morse[0] == '.'){
+                device_buffer_morse[0] = '-';
+        }
+	else {
+                device_buffer_morse[0] = '.';
+	}
+}
+
 
 static long etx_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
