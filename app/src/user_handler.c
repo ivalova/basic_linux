@@ -20,7 +20,7 @@ void user_handler(void)
         user_input = 0;
         user_input_dec = 0;
 
-        if (sem_trywait(&semGetInput) == 0) {
+        if (sem_wait(&semGetInput) == 0) {
         printf("Select program mode: ");
         
         //user_input = getchar();
