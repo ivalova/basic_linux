@@ -66,7 +66,7 @@ static char device_buffer_morse[BUFFER_SIZE_MORSE];
 dev_t device_number;
 char normal_mode_signal = '1';
 
-enum mode current_mode = MODE_NORMAL;
+enum mode current_mode = MODE_CUSTOM_MSG_ERR;
 
 void __iomem   *virtual_address;
 struct resource* requestested_mem_region;
@@ -88,9 +88,9 @@ static void inject_error(void)
         if (device_buffer_morse[0] == '.'){
                 device_buffer_morse[0] = '-';
         }
-	else {
-                device_buffer_morse[0] = '.';
-	}
+		else {
+        	device_buffer_morse[0] = '.';
+		}
 }
 
 
@@ -236,6 +236,10 @@ static void encode(void) {
 
 	/* Set null-terminator at the end of a string*/
 	device_buffer_morse[pos]= '\0';
+	
+	if(MODE_CUSTOM_MSG_ERR == current_mode){
+		inject_error();
+	}
 
 	pr_info("Received string: %s\n", device_buffer);
 	pr_info("Encoded string: %s\n", device_buffer_morse);
