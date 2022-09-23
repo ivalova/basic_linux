@@ -7,9 +7,7 @@
 #include "device_com.h"
 #include "ioctl_interface.h"
 
-static char* device_path = "/dev/morse";
-
-static int ioctl_send_mode(enum mode new_mode)
+static int ioctl_send_mode(enum mode new_mode, const char* device_path)
 {
     int fd = open(device_path, O_RDWR);
     if (fd < 0)
@@ -34,12 +32,12 @@ static int ioctl_send_mode(enum mode new_mode)
     return 0;
 }
 
-int ioctl_set_mode_to_test_error()
+int ioctl_set_mode_to_test_error(const char* device_path)
 {
-    return ioctl_send_mode(MODE_CUSTOM_MSG_ERR);
+    return ioctl_send_mode(MODE_CUSTOM_MSG_ERR, device_path);
 }
 
-int ioctl_set_mode_to_normal()
+int ioctl_set_mode_to_normal(const char* device_path)
 {
-    return ioctl_send_mode(MODE_NORMAL);
+    return ioctl_send_mode(MODE_NORMAL, device_path);
 }

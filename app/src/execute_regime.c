@@ -189,9 +189,9 @@ void* execute_regime(void* args)
                                         break;
                                 case MODE_CUSTOM_MSG_ERR:
                                         PRINT_DEBUG("Entering error regime\n");
-                                        ioctl_set_mode_to_test_error(); // TODO: handle error return value
+                                        ioctl_set_mode_to_test_error(device_path); // TODO: handle error return value
                                         test_regime();
-                                        ioctl_set_mode_to_normal(); // TODO: handle error return value
+                                        ioctl_set_mode_to_normal(device_path); // TODO: handle error return value
                                         sem_post(&semGetInput);
                                         break;
                                 case MODE_STOP_SENDING:

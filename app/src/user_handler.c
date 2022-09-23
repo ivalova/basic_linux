@@ -14,8 +14,7 @@ void user_handler(void)
         int             user_input;
         int             user_input_dec;
         const int       ascii_to_dec = 0x30;
-        enum mode       current_mode;
-        enum mode       last_entered_mode;
+        enum mode       last_entered_mode = 5;
 
         printf("Always enter one character followed by enter for each command.\n");
         while(1)
@@ -24,18 +23,24 @@ void user_handler(void)
                 user_input_dec = 0;
 
                 if (sem_wait(&semGetInput) == 0) {
-                        printf("Select program mode: ");
+                        do {
+                                printf("Select program mode: ");
                         
-                        //user_input = getchar();
-                        while((user_input = getchar()) == '\n');
+                                //user_input = getchar();
+                                while((user_input = getchar()) == '\n');
 
-                        user_input_dec = user_input - ascii_to_dec;
+                                user_input_dec = user_input - ascii_to_dec;
 
-                        if(!is_mode_valid(user_input_dec))
-                        {
-                                printf("Invalid mode selected! Valid options are [0-4]. You have selected ASCII value: %d \n", user_input); 
-                                continue;
-                        }
+                                if(!is_mode_valid(user_input_dec))
+                                {
+                                        printf("Invalid mode selected! Valid options are [0-4]. You have selected ASCII value: %d \n", user_input);
+                                        continue;
+                                }
+                                if (last_entered_mode == MODE_NORMAL && user_input_dec != MODE_STOP_SENDING){
+                                        printf("Currently in normal regime!\nPlease select mode 3 to stop it before changing to other modes!\n");
+                                }
+
+                        }while (last_entered_mode == MODE_NORMAL && user_input_dec != MODE_STOP_SENDING);
 
                         PRINT_DEBUG("You have selected mode: %d \n", user_input_dec);
                         switch(user_input_dec){
@@ -45,7 +50,8 @@ void user_handler(void)
                                         pthread_mutex_lock(&program_mutex);
                                         program_mode = user_input_dec;
                                         pthread_mutex_unlock(&program_mutex);
-                                        current_mode = MODE_NORMAL;
+                                        last_entered_mode = MODE_NORMAL;
+                                        printf("Currently in normal regime!\nPlease select mode 3 to stop it before changing to other modes!\n");
                                         sem_post(&semStart);
                                         break;
 
@@ -61,7 +67,7 @@ void user_handler(void)
                                         else {
                                                 sem_post(&semStart);
                                         }
-                                        current_mode = MODE_STOP_SENDING;
+                                        last_entered_mode = MODE_STOP_SENDING;
                                         break;
 
                                 case MODE_CUSTOM_MSG:
@@ -70,8 +76,6 @@ void user_handler(void)
                                         pthread_mutex_lock(&program_mutex);
                                         program_mode = user_input_dec;
                                         pthread_mutex_unlock(&program_mutex);
-
-                                        current_mode = MODE_CUSTOM_MSG;
 
                                         printf("Select predefined message: ");
 
@@ -99,8 +103,6 @@ void user_handler(void)
                                         program_mode = user_input_dec;
                                         pthread_mutex_unlock(&program_mutex);
 
-                                        current_mode = MODE_CUSTOM_MSG_ERR;
-
                                         printf("Select predefined message: ");
 
                                         while((user_input = getchar()) == '\n');
@@ -127,7 +129,6 @@ void user_handler(void)
                                         return;
                                         break;
                         }
-                        last_entered_mode = current_mode;
                 }
         }
        
