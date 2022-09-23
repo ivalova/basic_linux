@@ -2,7 +2,7 @@
 #include "user_handler.h"
 #include "execute_regime.h"
 
-char* device_path = "/dev/morse";
+char* device_path;
 uint8_t msg_option; //1,2,3,4,5
 sem_t semFinishSignal;
 sem_t semGetInput;
@@ -17,6 +17,8 @@ int main (int argc, char *argv[])
                 printf("This application supports one command line argument: character device driver path\n");
                 return -1;
         }
+
+        device_path = argv[1];
 
         pthread_t user_handler_thread;
         pthread_t execute_regime_thread;
