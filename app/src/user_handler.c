@@ -8,9 +8,6 @@
 //todo add description
 bool is_mode_valid(uint8_t input);
 bool is_custom_msg_valid(uint8_t input);
-bool is_error_index_valid(uint8_t input);
-bool is_error_value_valid(uint8_t input);
-bool is_error_value_valid(uint8_t input);
 
 void user_handler(void)
 {       
@@ -109,35 +106,6 @@ void user_handler(void)
                         msg_option = user_input_dec;
                         pthread_mutex_unlock(&program_mutex);
 
-                        printf("Select index of test string where error character will be injected:");
-                        while((user_input = getchar()) == '\n');
-                        user_input_dec = user_input - ascii_to_dec;
-
-                        if(!is_error_index_valid(user_input_dec))
-                        {
-                                printf("Invalid error index selected! Valid options are [0-%d]. You have selected ASCII value: %d \n", CUSTOM_MSG_LENGTH-1, user_input); 
-                                pthread_mutex_unlock(&program_mutex);
-                                continue;
-                        }
-
-                        pthread_mutex_lock(&program_mutex);
-                        error_index  = user_input_dec;
-                        pthread_mutex_unlock(&program_mutex);
-
-                        printf("Select ASCII character for error injection:");
-                        while((user_input = getchar()) == '\n');
-
-                        if(!is_error_value_valid(user_input))
-                        {
-                                printf("Invalid character selected! Only upper-case letters are allowed. You have selected: %c \n",user_input);
-                                pthread_mutex_unlock(&program_mutex);
-                                continue;
-                        }
-
-                        pthread_mutex_lock(&program_mutex);
-                        error_index  = user_input_dec;
-                        pthread_mutex_unlock(&program_mutex);
-
                         sem_post(&semStart);
                         PRINT_DEBUG("sem posted for MODE_CUSTOM_MSG\n");
 
@@ -171,28 +139,6 @@ bool is_custom_msg_valid(uint8_t input)
         bool    valid = false;
         
         if(input < CUSTOM_MSG_COUNT){
-                valid = true;
-        }
-        
-        return valid;
-}
-
-bool is_error_index_valid(uint8_t input)
-{
-        bool    valid = false;
-        
-        if(input < CUSTOM_MSG_LENGTH){
-                valid = true;
-        }
-        
-        return valid;
-}
-
-bool is_error_value_valid(uint8_t input)
-{
-        bool    valid = false;
-        
-        if((input <= 90) && (input >= 65)){
                 valid = true;
         }
         

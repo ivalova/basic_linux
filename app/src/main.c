@@ -4,7 +4,6 @@
 
 char* device_path = "/dev/morse";
 uint8_t msg_option; //1,2,3,4,5
-uint8_t error_index; //0-n
 sem_t semFinishSignal;
 sem_t semGetInput;
 sem_t semStart;
