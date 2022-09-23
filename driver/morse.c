@@ -4,6 +4,10 @@
 #include <linux/cdev.h>
 #include <linux/semaphore.h>
 #include <linux/uaccess.h>
+#include <linux/init.h>
+#include <linux/ioport.h>
+#include <asm/io.h>
+#include <linux/delay.h>
 
 #include "ioctl_interface.h"
 
@@ -19,6 +23,16 @@ MODULE_LICENSE("GPLv3");
 #define BUFFER_SIZE_MORSE 1000
 #define DEVICE_NAME "morse"
 
+/* LED handling macros */
+
+#define GREEN_LED_GPIO      (47)            // GPIO pin of green LED
+#define GPIO_ADDRESS        (0x3F200000)    // Start of GPIO address space
+#define GPIO_ADDRESS_LEN    (0xB4)          // Length of GPIO address space (0x3F2000B4 - 0x3F200000)
+#define GPFSEL4_OFFSET      (0x00000010)    // GPIO pin of greed LED is 47 and so we need to use GPFSEL4
+#define GPIO47_OFFSET       (0x00000007)    // In GPFSEL4, the offset of GPIO47 is 7 (47-40)
+#define GPIO_DIRECTION_OUT  (1)             // Output direction is 1 (input is 0)
+#define GPSET1_OFFSET       (0x00000020)    // RPi has 54 GPIOs which are devided in two sets, GPIO47 is in set 1 (from 32 to 53)
+#define GPCLR1_OFFSET       (0x0000002C)    // Clear pin offset for set 1
 
 
 /* FUNCTION DECLARATIONS
@@ -36,6 +50,12 @@ static long etx_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
 static void encode(void);
 static void char2morse(char, int*);
 
+static void initialize_led_memory(void);
+static void set_led_output_mode(void);
+static void turn_on_led(void);
+static void turn_off_led(void);
+static void signal_morse_code(void);
+
 
 /* GLOBALS
    ======= */
@@ -46,6 +66,9 @@ static char device_buffer_morse[BUFFER_SIZE_MORSE];
 dev_t device_number;
 
 test_error_mode_data_t test_error_data;
+
+void __iomem   *virtual_address;
+struct resource* requestested_mem_region;
 
 struct file_operations fops = {
 	.owner = THIS_MODULE,
@@ -157,6 +180,7 @@ static ssize_t write_to_device(
 		pr_info("[%s] Bytes written successfully.\n", __func__);
 
 		encode();
+		signal_morse_code();
 	}
 
 	return bytes_written;
@@ -182,6 +206,9 @@ static void encode(void) {
 			pos++;
 		}
 	}
+
+	/* Set null-terminator at the end of a string*/
+	device_buffer_morse[pos]= '\0';
 
 	pr_info("Received string: %s\n", device_buffer);
 	pr_info("Encoded string: %s\n", device_buffer_morse);
@@ -441,6 +468,76 @@ static void char2morse(char c, int *offset) {
 	*offset = j + 1;
 }
 
+static void initialize_led_memory(void) {
+	requestested_mem_region = request_mem_region(GPIO_ADDRESS, GPIO_ADDRESS_LEN, "GPIO47");
+    if(requestested_mem_region == NULL)
+    {
+        pr_info("Info: Requested memory region is also used by GPIO driver!\n");
+    }
+
+    virtual_address = ioremap(GPIO_ADDRESS, GPIO_ADDRESS_LEN);
+    if(virtual_address == NULL)
+    {
+        pr_info("Error: Virtual address is NULL!\n");
+    }
+
+}
+
+static void set_led_output_mode(void){
+	u32 tmp;
+    u32 output_mask;
+
+	tmp = ioread32(virtual_address + GPFSEL4_OFFSET);
+    output_mask = 0x1 << (GPIO47_OFFSET*3);
+    tmp |= output_mask;
+
+    iowrite32(tmp, virtual_address + GPFSEL4_OFFSET);
+}
+
+static void turn_on_led(void){
+    u32 tmp;
+    /* Turn on GPIO. */
+    tmp = 0x1 << (GREEN_LED_GPIO - 32);
+    iowrite32(tmp, virtual_address + GPSET1_OFFSET);
+}
+
+static void turn_off_led(void){
+    u32 tmp;
+    /* Turn off GPIO. */
+    tmp = 0x1 << (GREEN_LED_GPIO - 32);
+    iowrite32(tmp, virtual_address + GPCLR1_OFFSET);
+}
+
+static void signal_morse_code(void){
+	int i;
+	for(i = 0; device_buffer_morse[i] != '\0'; i++) {
+		if (device_buffer_morse[i] == '.'){
+			turn_on_led();
+			msleep(300);
+			if (device_buffer_morse[i+1] == '.' || device_buffer_morse[i+1] == '-'){
+				turn_off_led();
+				msleep(300);
+			}
+		}
+		else if (device_buffer_morse[i] == '-'){
+			turn_on_led();
+			msleep(900);
+			if (device_buffer_morse[i+1] == '.' || device_buffer_morse[i+1] == '-'){
+				turn_off_led();
+				msleep(300);
+			}
+		}
+		else if (device_buffer_morse[i] == '*'){
+			turn_off_led();
+			msleep(900);
+		}
+		else if (device_buffer_morse[i] == '_'){
+			turn_off_led();
+			msleep(2700);
+		}
+	}
+}
+
 
 int __init init_dev(void) {
 	int ret;
@@ -463,9 +560,14 @@ int __init init_dev(void) {
 			unregister_chrdev_region(device_number, 1);
 		}
 		else
-			pr_info("[%s] Dvice added to kernel successfully.\n", __func__);
+			pr_info("[%s] Device added to kernel successfully.\n", __func__);
 
 	}
+
+	initialize_led_memory();
+	set_led_output_mode();
+
+    /* ----------LED ------*/
 
 	return ret;
 }
