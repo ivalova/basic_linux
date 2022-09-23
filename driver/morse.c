@@ -65,7 +65,7 @@ static char device_buffer[BUFFER_SIZE];
 static char device_buffer_morse[BUFFER_SIZE_MORSE];
 dev_t device_number;
 
-test_error_mode_data_t test_error_data;
+enum mode current_mode = MODE_NORMAL;
 
 void __iomem   *virtual_address;
 struct resource* requestested_mem_region;
@@ -84,15 +84,15 @@ static long etx_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
          switch(cmd) {
                 case WR_VALUE:
-                        if( copy_from_user(&test_error_data ,(int32_t *) arg, sizeof(test_error_data)) )
+                        if( copy_from_user(&current_mode ,(int32_t *) arg, sizeof(current_mode)) )
                         {
                                 pr_err("Data Write : Err!\n");
                         }
-						pr_info("Value = %d\n", test_error_data.char_index_to_change);
+						pr_info("Value = %d\n", current_mode);
                         // TODO: here we can handle the received test_error_data
                         break;
                 case RD_VALUE:
-                        if( copy_to_user((int32_t*) arg, &test_error_data, sizeof(test_error_data)) )
+                        if( copy_to_user((int32_t*) arg, &current_mode, sizeof(current_mode)) )
                         {
                                 pr_err("Data Read : Err!\n");
                         }

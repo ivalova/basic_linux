@@ -165,10 +165,9 @@ void* execute_regime(void* args)
                                         break;
                                 case MODE_CUSTOM_MSG_ERR:
                                         PRINT_DEBUG("Entering error regime\n");
-                                        //Add ioctl mode change to error mode
-                                        // TODO: how to get the index and char value to change?
+                                        ioctl_set_mode_to_test_error(); // TODO: handle error return value
                                         test_regime();
-                                        ioctl_set_mode_to_normal();
+                                        ioctl_set_mode_to_normal(); // TODO: handle error return value
                                         break;
                                 case MODE_STOP_SENDING:
                                         PRINT_DEBUG("Entering idle regime\n");
