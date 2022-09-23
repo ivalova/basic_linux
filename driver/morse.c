@@ -197,12 +197,15 @@ static void encode(void) {
 		if(device_buffer[i] != ' ')
 			char2morse(device_buffer[i], &pos);
 
-		if(device_buffer[i + 1] != '\0') {
-			if(device_buffer[i] == ' ')
+		if(device_buffer[i + 1] != '\0' && device_buffer[i + 1] != ' ') {
+			if(device_buffer[i] == ' '){
 				device_buffer_morse[pos] = '_';
-			else
+			}
+				
+			else {
 				device_buffer_morse[pos] = '*';
-
+			}
+				
 			pos++;
 		}
 	}
@@ -533,7 +536,7 @@ static void signal_morse_code(void){
 		}
 		else if (device_buffer_morse[i] == '_'){
 			turn_off_led();
-			msleep(2700);
+			msleep(2100);
 		}
 	}
 }
