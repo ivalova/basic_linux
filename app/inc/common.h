@@ -28,6 +28,7 @@ extern uint8_t          led; // green, red
 extern uint16_t         unit_duration; //ms
 extern sem_t            semFinishSignal;
 extern sem_t            semGetInput;
+extern sem_t            semTerminate;
 extern sem_t            semStart;
 
 #endif

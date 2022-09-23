@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#define NORMAL_REGIME_TIMEOUT 2000
+#define MSG_SEQ_TIMEOUT_MS 2000
 
 struct test_pairs{
         const char* test_input;

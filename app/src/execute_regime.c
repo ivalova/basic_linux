@@ -2,19 +2,20 @@
 #include "timer_event.h"
 #include "device_com.h"
 
-const char* test_input1 = "BORNA12345";
-const char* test_input2 = "IVAN690LOV";
-const char* test_input3 = "D MIJIC456";
-const char* test_input4 = "MA773OBRIS";
-const char* test_input5 = "FILE70GARM";
+static const char* test_input1 = "BORNA12345";
+static const char* test_input2 = "IVAN690LOV";
+static const char* test_input3 = "D MIJIC456";
+static const char* test_input4 = "MA773OBRIS";
+static const char* test_input5 = "FILE70GARM";
 
-const char* test_output1 = "-...*---*.-.*-.*.-*.----*..---*...--*....-*.....";
-const char* test_output2 = "..*...-*.-*-.*-....*----.*-----*.-..*---*...-";
-const char* test_output3 = "-.._--*..*.---*..*-.-.*....-*.....*-....";
-const char* test_output4 = "--*.-*--...*--...*...--*---*-...*.-.*..*...";
-const char* test_output5 = "..-.*..*.-..*.*--...*-----*--.*.-*.-.*--";
+static const char* test_output1 = "-...*---*.-.*-.*.-*.----*..---*...--*....-*.....";
+static const char* test_output2 = "..*...-*.-*-.*-....*----.*-----*.-..*---*...-";
+static const char* test_output3 = "-.._--*..*.---*..*-.-.*....-*.....*-....";
+static const char* test_output4 = "--*.-*--...*--...*...--*---*-...*.-.*..*...";
+static const char* test_output5 = "..-.*..*.-..*.*--...*-----*--.*.-*.-.*--";
 
-struct test_pairs test_vectors[CUSTOM_MSG_COUNT];
+static struct test_pairs test_vectors[CUSTOM_MSG_COUNT];
+static timer_event_t hNormalRegimeTimer;
 
 static char* rand_string(void)
 {
@@ -77,6 +78,7 @@ static void test_setup(void)
 static void* normal_regime(void* args)
 {
         char *random_string;
+        char *done;
         uint8_t res;
         uint64_t fd;
 
@@ -95,8 +97,23 @@ static void* normal_regime(void* args)
 
         PRINT_DEBUG("Written %s to %s\n", random_string, device_path);
 
-        free(random_string);        
+        do{
+                if (sem_trywait(&semTerminate) == 0) {
+                        printf("Terminating normal regime!\n");
+                        sem_post(&semGetInput);
+                        goto terminate;
+                }
+                read(fd, done, 1);
+        }while(strcmp(done, "1"));
+
+        timer_event_set(&hNormalRegimeTimer, 
+        MSG_SEQ_TIMEOUT_MS, normal_regime, 
+        0, TE_KIND_ONCE);
+
+terminate:
+        free(random_string);
         close(fd);
+
         return 0;
 }
 
@@ -117,6 +134,7 @@ static void test_regime(void)
         if (-1 == res) {
                 printf("Write failed!\n");
         }
+
         PRINT_DEBUG("Written %s to %s\n", 
                 test_vectors[msg_option].test_input, 
                 device_path);
@@ -128,7 +146,9 @@ static void test_regime(void)
         }
 
         if (!strcmp(test_vectors[msg_option].test_output, encoded_string)){
-                printf("Encoder test succesfull!\n");
+                printf("Encoder test succesfull!\nExpected:\n%s\nGot:%s\n",
+                        test_vectors[msg_option].test_output, 
+                        encoded_string);
         }
         else {
                 printf("Encoder test unsuccesfull!\nExpected:\n%s\nGot:%s\n",
@@ -143,7 +163,6 @@ static void test_regime(void)
 
 void* execute_regime(void* args)
 {
-        timer_event_t hNormalRegimeTimer;
         test_setup();
 
         while (1) {
@@ -155,28 +174,28 @@ void* execute_regime(void* args)
                         switch (program_mode) {
                                 case MODE_NORMAL:
                                         PRINT_DEBUG("Entering normal regime\n");
-                                        timer_event_set(&hNormalRegimeTimer, 
-                                        NORMAL_REGIME_TIMEOUT, normal_regime, 
-                                        0, TE_KIND_REPETITIVE);
+                                        sem_post(&semGetInput);
+                                        normal_regime(NULL);
                                         break;
                                 case MODE_CUSTOM_MSG:
                                         PRINT_DEBUG("Entering test regime\n");
                                         test_regime();
+                                        sem_post(&semGetInput);
                                         break;
                                 case MODE_CUSTOM_MSG_ERR:
                                         PRINT_DEBUG("Entering error regime\n");
                                         ioctl_set_mode_to_test_error(); // TODO: handle error return value
                                         test_regime();
                                         ioctl_set_mode_to_normal(); // TODO: handle error return value
+                                        sem_post(&semGetInput);
                                         break;
                                 case MODE_STOP_SENDING:
-                                        PRINT_DEBUG("Entering idle regime\n");
-                                        timer_event_kill(hNormalRegimeTimer);
+                                        PRINT_DEBUG("Currently in idle regime\n");
+                                        sem_post(&semGetInput);
                                         break;
                                 default:
                                         break;
                         }
-                        sem_post(&semGetInput);
                 }
         }
 

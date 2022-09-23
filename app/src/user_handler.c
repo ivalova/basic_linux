@@ -54,6 +54,7 @@ void user_handler(void)
                         program_mode = user_input_dec;
                         pthread_mutex_unlock(&program_mutex);
 
+                        sem_post(&semTerminate);
                         sem_post(&semStart);
                         break;
 
