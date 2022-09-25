@@ -1,4 +1,3 @@
-
 CC = ${CROSS_COMPILE}gcc
 LD = ${CROSS_COMPILE}gcc
 
@@ -21,10 +20,10 @@ before_build:
 	mkdir -p $(BINDIR)
 
 %.o :  ${SRCDIR}/%.c before_build
-	$(CC) $(COPTS) -c $< -o $(OBJDIR)/$@ -I $(INCDIR) -I $(COMMON_INCDIR)
+	$(CC) $(COPTS) -c $< -o $(OBJDIR)/$@ -I $(INCDIR) -I $(COMMON_INCDIR) -static
 	
 app: $(OBJ)
-	$(LD) -o $(BINDIR)/$@ $(OBJ_PATH) $(LIB)
+	$(LD) -o $(BINDIR)/$@ $(OBJ_PATH) $(LIB) -static
 
 clean:
 	rm -rf $(OBJDIR)
