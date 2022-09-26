@@ -24,7 +24,12 @@ void user_handler(void)
 
                 if (sem_wait(&semGetInput) == 0) {
                         do {
-                                printf("Select program mode: ");
+                                printf("Select program mode: \n");
+                                printf("[0] Normal mode\n");
+                                printf("[1] Test mode\n");
+                                printf("[2] Test mode with error injection\n");
+                                printf("[3] Stop sending data\n");
+                                printf("[4] Exit program\n");
                         
                                 //user_input = getchar();
                                 while((user_input = getchar()) == '\n');
