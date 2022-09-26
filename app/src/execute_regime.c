@@ -95,6 +95,7 @@ static void* normal_regime(void* args)
                 printf("Write failed!\n");
         }
 
+        done = malloc(2 * sizeof(char));
         PRINT_DEBUG("Written %s to %s\n", random_string, device_path);
 
         do{
