@@ -118,6 +118,7 @@ static void* normal_regime(void* args)
 
 terminate:
         free(random_string);
+        free(done);
         close(fd);
 
         return 0;
