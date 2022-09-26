@@ -4,7 +4,8 @@ ROOT_UID=0
 E_NOTROOT=87
 DRIVER_LOCATION=driver
 APP_LOCATION=app
-DRIVER_AND_APP_DESTINATION_PATH=/srv/tftp/
+SCRIPTS_LOCATION=scripts
+DRIVER_AND_APP_DESTINATION_PATH=/home/student/linux-kernel-labs/modules/nfsroot/root
 KDIR_PATH=/home/student/linux-kernel-labs/src/linux/
 
 export ARCH=arm
@@ -16,14 +17,6 @@ check_return_code_and_exit_if_error() {
     then
         echo -e "\e[31mERROR: previous command failed. Aborting the script...\e[0m"
         exit 1
-    fi
-}
-
-check_if_user_is_root() {
-    if [ "$UID" -ne "$ROOT_UID" ]
-    then
-        echo "Must be root to run this script."
-        exit $E_NOTROOT
     fi
 }
 
@@ -52,18 +45,26 @@ copy_driver_and_app_to_rpi() {
     echo "Copy driver and app to rpi..."
     cd ..
     driver_path=$DRIVER_LOCATION/morse.ko
-    cp $driver_path $DRIVER_AND_APP_DESTINATION_PATH
+    sudo cp $driver_path $DRIVER_AND_APP_DESTINATION_PATH
     check_return_code_and_exit_if_error $?
 
     app_path=$APP_LOCATION/bin/app
-    cp $app_path $DRIVER_AND_APP_DESTINATION_PATH
+    sudo cp $app_path $DRIVER_AND_APP_DESTINATION_PATH
     check_return_code_and_exit_if_error $?
     echo "Done copying."
 }
 
-check_if_user_is_root
+copy_run_script_to_rpi() {
+    echo "Copy run script to rpi..."
+    run_script_path=$SCRIPTS_LOCATION/run_morse.sh
+    sudo cp $run_script_path $DRIVER_AND_APP_DESTINATION_PATH
+    check_return_code_and_exit_if_error $?
+    echo "Done copying."
+}
+
 clean_make_driver
 clean_make_app
 copy_driver_and_app_to_rpi
+copy_run_script_to_rpi
 
 exit 0

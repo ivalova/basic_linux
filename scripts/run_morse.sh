@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 ROOT_UID=0
 E_NOTROOT=87
@@ -14,17 +14,9 @@ check_return_code_and_exit_if_error() {
     fi
 }
 
-check_if_user_is_root() {
-    if [ "$UID" -ne "$ROOT_UID" ]
-    then
-        echo "Must be root to run this script."
-        exit $E_NOTROOT
-    fi
-}
-
 insert_driver() {
     echo "Inserting driver..."
-    sudo insmod $MODULE.ko
+    insmod $MODULE.ko
     check_return_code_and_exit_if_error $?
     echo "Inserting driver done."
 }
@@ -38,7 +30,6 @@ create_char_device() {
     echo "Creating char device done."
 }
 
-check_if_user_is_root
 insert_driver
 create_char_device
 
