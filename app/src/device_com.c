@@ -41,3 +41,8 @@ int ioctl_set_mode_to_normal(const char* device_path)
 {
     return ioctl_send_mode(MODE_NORMAL, device_path);
 }
+
+int ioctl_set_mode_to_test(const char* device_path)
+{
+    return ioctl_send_mode(MODE_CUSTOM_MSG, device_path);
+}
