@@ -12,6 +12,13 @@ check_return_code_and_exit_if_error() {
     fi
 }
 
+rmmod_driver() {
+    echo "Removing driver..."
+    rmmod $MODULE.ko
+    check_return_code_and_exit_if_error $?
+    echo "Removing driver done."
+}
+
 insert_driver() {
     echo "Inserting driver..."
     insmod $MODULE.ko
@@ -33,6 +40,7 @@ run_app() {
     ./app /dev/$DEVICE
 }
 
+rmmod_driver
 insert_driver
 create_char_device
 run_app
