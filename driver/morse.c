@@ -143,6 +143,7 @@ static ssize_t read_from_device(
 
 	int max_bytes;
 	ssize_t bytes_read, bytes_to_read;
+	*ppos=0;
 
 	if (MODE_NORMAL == current_mode){
 		bytes_to_read = 1 - *ppos;
