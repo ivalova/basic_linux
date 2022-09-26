@@ -89,12 +89,6 @@
 };
 
 &leds {
-	act_led: led-act {
-		label = "led0";
-		linux,default-trigger = "none";
-		gpios = <&gpio 47 0>;
-	};
-
 	pwr_led: led-pwr {
 		label = "led1";
 		linux,default-trigger = "input";
@@ -120,10 +114,6 @@ cam0_reg: &cam_dummy_reg {
 
 / {
 	__overrides__ {
-		act_led_gpio = <&act_led>,"gpios:4";
-		act_led_activelow = <&act_led>,"gpios:8";
-		act_led_trigger = <&act_led>,"linux,default-trigger";
-
 		pwr_led_gpio = <&pwr_led>,"gpios:4";
 		pwr_led_activelow = <&pwr_led>,"gpios:8";
 		pwr_led_trigger = <&pwr_led>,"linux,default-trigger";
