@@ -102,14 +102,6 @@ static long etx_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
                         {
                                 pr_err("Data Write : Err!\n");
                         }
-						pr_info("Value = %d\n", current_mode);
-                        // TODO: here we can handle the received test_error_data
-                        break;
-                case RD_VALUE:
-                        if( copy_to_user((int32_t*) arg, &current_mode, sizeof(current_mode)) )
-                        {
-                                pr_err("Data Read : Err!\n");
-                        }
                         break;
                 default:
                         pr_info("Default\n");

@@ -2,7 +2,6 @@
 #define IOCTL_INTERFACE_H
 
 #define WR_VALUE _IOW('a','a',enum mode*)
-#define RD_VALUE _IOR('a','b',enum mode*)
 
 enum mode {
         MODE_NORMAL = 0,
