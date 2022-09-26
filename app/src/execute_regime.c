@@ -82,7 +82,7 @@ static void* normal_regime(void* args)
         uint8_t res;
         uint64_t fd;
 
-        fd = open(device_path, O_WRONLY);
+        fd = open(device_path, O_RDWR);
         if (fd<0) {
                 printf("Opening failed!\n");
         }
@@ -124,11 +124,11 @@ terminate:
 
 static void test_regime(void)
 {
-        uint8_t res;
+        ssize_t res;
         uint64_t fd;
         char *encoded_string;
 
-        fd = open(device_path, O_WRONLY);
+        fd = open(device_path, O_RDWR);
         if (fd<0) {
                 printf("Opening failed!\n");
         }
@@ -144,8 +144,10 @@ static void test_regime(void)
                 test_vectors[msg_option].test_input, 
                 device_path);
 
-        encoded_string = malloc(1001);
-        res = read(fd, encoded_string, 1000);
+        encoded_string = malloc(strlen(test_vectors[msg_option].test_output)+1);
+        do {
+                res = read(fd, encoded_string, strlen(test_vectors[msg_option].test_output));
+        }while (res != strlen(test_vectors[msg_option].test_output));
         if (-1 == res) {
                 printf("Read failed!\n");
         }
@@ -179,11 +181,13 @@ void* execute_regime(void* args)
                         switch (program_mode) {
                                 case MODE_NORMAL:
                                         PRINT_DEBUG("Entering normal regime\n");
+                                        ioctl_set_mode_to_normal(device_path);
                                         sem_post(&semGetInput);
                                         normal_regime(NULL);
                                         break;
                                 case MODE_CUSTOM_MSG:
                                         PRINT_DEBUG("Entering test regime\n");
+                                        ioctl_set_mode_to_test(device_path);
                                         test_regime();
                                         sem_post(&semGetInput);
                                         break;
