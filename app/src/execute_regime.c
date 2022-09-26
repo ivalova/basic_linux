@@ -100,13 +100,8 @@ static void* normal_regime(void* args)
 
         do{
                 if (sem_trywait(&semTerminate) == 0) {
-                        printf("Terminating normal regime!\n");
+                        PRINT_DEBUG("Terminating normal regime!\n");
                         sem_post(&semGetInput);
-                        goto terminate;
-                }
-                if (sem_trywait(&semFinishSignal) == 0) {
-                        printf("Terminating normal regime and exiting!\n");
-                        sem_post(&semFinishSignal);
                         goto terminate;
                 }
                 read(fd, done, 1);
