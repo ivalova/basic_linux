@@ -1,7 +1,5 @@
 #!/bin/sh
 
-ROOT_UID=0
-E_NOTROOT=87
 MODULE=morse
 DEVICE=morse
 NAME=morse
@@ -30,7 +28,13 @@ create_char_device() {
     echo "Creating char device done."
 }
 
+run_app() {
+    echo "Running the app..."
+    ./app /dev/$DEVICE
+}
+
 insert_driver
 create_char_device
+run_app
 
 exit 0

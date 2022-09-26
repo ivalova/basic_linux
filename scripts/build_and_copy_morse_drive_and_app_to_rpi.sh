@@ -1,7 +1,5 @@
 #!/bin/bash
 
-ROOT_UID=0
-E_NOTROOT=87
 DRIVER_LOCATION=driver
 APP_LOCATION=app
 SCRIPTS_LOCATION=scripts
