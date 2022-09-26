@@ -536,6 +536,9 @@ static void signal_morse_code(void){
 	int i;
 	/* One unit is 300ms */
 	for(i = 0; device_buffer_morse[i] != '\0'; i++) {
+		if (current_mode == MODE_STOP_SENDING){
+			break;
+		}
 		if (device_buffer_morse[i] == '.'){
 			turn_on_led();
 			msleep(300);

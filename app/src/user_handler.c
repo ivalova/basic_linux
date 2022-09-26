@@ -1,6 +1,7 @@
 #include "execute_regime.h"
 #include "common.h"
 #include "ioctl_interface.h"
+#include "device_com.h"
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -68,6 +69,7 @@ void user_handler(void)
                                         pthread_mutex_unlock(&program_mutex);
                                         if (last_entered_mode == MODE_NORMAL){
                                                 sem_post(&semTerminate);
+                                                ioctl_set_mode_to_stop(device_path);
                                         }
                                         else {
                                                 sem_post(&semStart);
