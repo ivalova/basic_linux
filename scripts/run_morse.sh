@@ -15,7 +15,6 @@ check_return_code_and_exit_if_error() {
 rmmod_driver() {
     echo "Removing driver..."
     rmmod $MODULE.ko
-    check_return_code_and_exit_if_error $?
     echo "Removing driver done."
 }
 
